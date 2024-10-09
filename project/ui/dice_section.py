@@ -105,11 +105,13 @@ class DiceSection(ctk.CTkFrame):
         # Create a pop-up window for results
         results_window = ctk.CTkToplevel(self)
         results_window.title("Dice Roll Results")
-        results_window.geometry("250x300")
+        results_window.geometry("300x300")
         # Create a scrollable text box for results
         results_frame = ctk.CTkTextbox(results_window, height=350, width=420)
         results_frame.pack(pady=1)
         all_rolls = {}
+        total_sum = 0
+        totals_by_dice = {}
         for dice, entry in self._dice_entries.items():
             try:
                 count = int(entry.get())  # Get value from entry
@@ -118,6 +120,8 @@ class DiceSection(ctk.CTkFrame):
             if count > 0:
                 rolls = [random.randint(1, dice_types[dice]) for _ in range(count)]
                 all_rolls[dice] = rolls
+                total_sum += sum(rolls)
+                totals_by_dice[dice] = sum(rolls)
                 results_frame.insert(ctk.END, f'{dice} results:\n')
                 for roll in rolls:
                     results_frame.insert(ctk.END, f'{roll}\n')
@@ -126,6 +130,7 @@ class DiceSection(ctk.CTkFrame):
         for dice, rolls in all_rolls.items():
             highest_roll = max(rolls)
             lowest_roll = min(rolls)
-            results_summary += f'{dice}: Highest Roll = {highest_roll}, Lowest Roll = {lowest_roll}\n'
+            results_summary += f'{dice}: Highest Roll = {highest_roll}, Lowest Roll = {lowest_roll}, Total = {totals_by_dice[dice]}\n'
+        results_frame.insert('1.0', f"Total sum of all dice = {total_sum}\n")
         results_frame.insert('1.0', f"Roll Summary:\n{results_summary}\n{'-'*30}\n")
         results_frame.configure(state="disabled")
