@@ -52,7 +52,7 @@ class DiceSection(ctk.CTkFrame):
             dice_frame = self._create_dice_frame(dice)
             dice_frame.grid(row=row, column=column, padx=10, pady=10, sticky="nsew")
         # Roll dice button spanning both columns in row 4
-        roll_button = ctk.CTkButton(self._customdice_content, fg_color=self._colors["button"], text="Roll Dice", text_color=self._colors["text"], command=self._roll_custom_dice)
+        roll_button = ctk.CTkButton(self._customdice_content, text="Roll Dice", font=("Arial", 20, "bold"), fg_color=self._colors["button"], text_color=self._colors["text"], command=self._roll_custom_dice)
         roll_button.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
 #===========================================================================================================
     def _create_dice_frame(self, dice):
@@ -60,32 +60,45 @@ class DiceSection(ctk.CTkFrame):
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_rowconfigure(2, weight=1)
         # Dice label
-        label = ctk.CTkLabel(frame, text=dice, text_color=self._colors["text"], font=("Arial", 14))
+        label = ctk.CTkLabel(frame, text=dice, text_color=self._colors["text"], font=("Arial", 20, "bold"))
         label.grid(row=0, column=0, pady=5)
         # Entry box
-        entry = ctk.CTkEntry(frame, width=60)
+        entry = ctk.CTkEntry(frame, width=80, height=40, font=("Arial", 20))
         entry.grid(row=1, column=0, pady=5)
         entry.insert(0, "0")
         self._dice_entries[dice] = entry
         # Increment and decrement buttons
         button_frame = ctk.CTkFrame(frame, fg_color=self._colors["transp"])
         button_frame.grid(row=2, column=0, pady=5)
-        increment_button = ctk.CTkButton(button_frame, fg_color=self._colors["button"], text="+", width=20, command=lambda e=entry: self._increment_dice(e))
-        increment_button.grid(row=0, column=0, padx=5)
-        decrement_button = ctk.CTkButton(button_frame, fg_color=self._colors["button"], text="-", width=20, command=lambda e=entry: self._decrement_dice(e))
-        decrement_button.grid(row=0, column=1, padx=5)
+        # increment_button = ctk.CTkButton(button_frame, corner_radius=4, fg_color=self._colors["button"], text="+", width=30, command=lambda e=entry: self._adjust_dice_values(e, "+"))
+        # increment_button.grid(row=0, column=0)
+        # decrement_button = ctk.CTkButton(button_frame, corner_radius=4, fg_color=self._colors["button"], text="-", width=30, command=lambda e=entry: self._adjust_dice_values(e, "-""))
+        # decrement_button.grid(row=0, column=1)
+        value_button = ctk.CTkSegmentedButton(button_frame, width=80, height=40, values=["-", "+"], font=("Arial", 18, "bold"), fg_color=self._colors["button"], unselected_color=self._colors["button"])
+        value_button.grid(row=0, column=0, columnspan=2)
+        value_button.configure(command=lambda selected, e=entry, v=value_button: self._adjust_dice_values(e, selected, v))
         return frame
 #===========================================================================================================
-    def _increment_dice(self, entry):
-        current_value = int(entry.get())
-        entry.delete(0, ctk.END)
-        entry.insert(0, str(current_value + 1))
+    # def _increment_dice(self, entry):
+    #     current_value = int(entry.get())
+    #     entry.delete(0, ctk.END)
+    #     entry.insert(0, str(current_value + 1))
 #===========================================================================================================
-    def _decrement_dice(self, entry):
-        current_value = int(entry.get())
+    # def _decrement_dice(self, entry):
+    #     current_value = int(entry.get())
+    #     entry.delete(0, ctk.END)
+    #     if current_value > 0:
+    #         entry.insert(0, str(current_value - 1))
+#===============================================================================================================
+    def _adjust_dice_values(self, entry, selected, value_button):
+        current_val = int(entry.get())
+        if selected == "+":
+            current_val += 1
+        elif selected == "-" and current_val > 0:
+            current_val -= 1
         entry.delete(0, ctk.END)
-        if current_value > 0:
-            entry.insert(0, str(current_value - 1))
+        entry.insert(0, str(current_val))
+        value_button.set("")
 #===========================================================================================================
     def _roll_custom_dice(self):
         dice_types = {'D-4': 4, 'D-6': 6, 'D-8': 8, 'D-10': 10, 'D-12': 12, 'D-20': 20}
