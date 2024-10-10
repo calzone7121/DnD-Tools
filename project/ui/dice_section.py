@@ -12,7 +12,8 @@ class DiceSection(ctk.CTkFrame):
         self._custom_dice_entries = {}
         self._skill_roll_conditions = {"DC": 1, "RollType": 0, "Bonus": 0, "Penalty": 0}
         self._skill_dice_entries = {}
-        self._skill_dice_roll_details = ""
+        self._skill_dice_roll_details_text = ""
+        #draw/setup tabs in the UI
         self._configure_section()
         self._configure_tabview()
         self._configure_customdice_tab()
@@ -66,33 +67,141 @@ class DiceSection(ctk.CTkFrame):
         label = ctk.CTkLabel(frame, text=dice, text_color=self._colors["text"], font=("Arial", 20, "bold"))
         label.grid(row=0, column=0, pady=5)
         # Entry box
+        vcmd = self.register(self._entry_input_validation)
         entry = ctk.CTkEntry(frame, width=80, height=40, font=("Arial", 20))
         entry.grid(row=1, column=0, pady=5)
         entry.insert(0, "0")
+        entry.configure(validate='all', validatecommand=(vcmd, '%P'))
         self._custom_dice_entries[dice] = entry
         # Increment and decrement buttons
         button_frame = ctk.CTkFrame(frame, fg_color=self._colors["transp"])
         button_frame.grid(row=2, column=0, pady=5)
         value_button = ctk.CTkSegmentedButton(button_frame, width=80, height=40, values=["-", "+"], font=("Arial", 18, "bold"), fg_color=self._colors["button"], unselected_color=self._colors["button"])
         value_button.grid(row=0, column=0, columnspan=2)
-        value_button.configure(command=lambda selected, e=entry, v=value_button: self._adjust_dice_values(selected, e, v))
+        value_button.configure(command=lambda selected, e=entry, v=value_button: self._adjust_entry_values(selected, e, v))
         return frame
-#===============================================================================================================
-    def _adjust_dice_values(self, selected, entry, value_button):
-        current_val = int(entry.get())
-        if selected == "+":
-            current_val += 1
-        elif selected == "-" and current_val > 0:
-            current_val -= 1
-        entry.delete(0, ctk.END)
-        entry.insert(0, str(current_val))
-        value_button.set("")
-#===========================================================================================================
+#=======================================================================================================================================
+    def _configure_skill_tab(self):
+        #set size of the content frame within the tab and set up grid structure for internal elements
+        self._skilltab_content = ctk.CTkFrame(self._section_tabs.tab(self._tab_names[1]), fg_color=self._colors["background"])
+        self._skilltab_content.grid(row=0, column=0, sticky="nsew")
+        self._skilltab_content.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=1, uniform="equal")
+        self._skilltab_content.grid_columnconfigure((0, 1, 2), weight=1, uniform="equal")
+        self._setup_skill_dcslider()
+        self._create_skill_rolltype_frame()
+        self._setup_skill_modifier_frame()
+        self._setup_skill_bonusdice_frame()
+        self._setup_skill_results_frame()
+#=====================================================================================================================================
+    def _setup_skill_dcslider(self):
+        dc_slider_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"], corner_radius=10)
+        dc_slider_frame.grid(row=0, column=0, columnspan=3, pady=10, sticky="nsew")
+        dc_slider_frame.grid_rowconfigure((0, 1), weight=1)
+        dc_slider_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        dc_label = ctk.CTkLabel(dc_slider_frame, text="DC (Difficulty)", text_color=self._colors["text"], font=("Arial", 20, "bold"), corner_radius=10)
+        dc_label.grid(row=0, column=0, columnspan=3, sticky="nsew")
+        dc_slide = ctk.CTkSlider(dc_slider_frame, from_=1, to=30, fg_color=self._colors["button"])
+        dc_slide.grid(row=1, column=0, columnspan=2, pady=10, sticky="ew")
+        dc_slide.set(1)
+        entry = ctk.CTkEntry(dc_slider_frame, width=30, height=20, font=("Arial", 20))
+        entry.grid(row=1, column=2, padx=5, sticky="nsew")
+        entry.insert(0, "1")
+        dc_slide.configure(command=lambda value, e=entry : self._dc_sliding(value, e))
+        return dc_slider_frame
+#=================================================================================================================================
+    def _create_skill_rolltype_frame(self):
+        rolltype_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
+        rolltype_frame.grid(row=1, column=0, columnspan=3, pady=10, sticky="nsew")
+        rolltype_frame.grid_rowconfigure((0, 1), weight=1)
+        rolltype_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        roll_label = ctk.CTkLabel(rolltype_frame, text="Roll Type", font=("Arial", 20, "bold"))
+        roll_label.grid(row=0, column=0, columnspan=3, sticky="nsew")
+        self._skill_roll_conditions["RollType"] = ctk.IntVar(value=0)
+        normal_rad = ctk.CTkRadioButton(rolltype_frame, text="Normal", font=("Arial", 15), value=0, variable=self._skill_roll_conditions["RollType"])
+        normal_rad.grid(row=1, column=0, sticky="nsew")
+        adv_rad = ctk.CTkRadioButton(rolltype_frame, text="Adv", font=("Arial", 15), value=1, variable=self._skill_roll_conditions["RollType"])
+        adv_rad.grid(row=1, column=1, sticky="nsew")
+        dis_rad = ctk.CTkRadioButton(rolltype_frame, text="Disadv", font=("Arial", 15), value=2, variable=self._skill_roll_conditions["RollType"])
+        dis_rad.grid(row=1, column=2, sticky="nsew")
+        return rolltype_frame
+#=================================================================================================================================
+    def _setup_skill_modifier_frame(self):
+        modifier_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
+        modifier_frame.grid(row=2, column=0, columnspan=3, pady=10, sticky="nsew")
+        modifier_frame.grid_rowconfigure((0, 1), weight=1)
+        modifier_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        bonus_label = ctk.CTkLabel(modifier_frame, text="Bonus", font=("Arial", 20, "bold"))
+        bonus_label.grid(row=0, column=0, sticky="nsew")
+        vcmd = self.register(self._entry_input_validation)
+        bonus_entry = ctk.CTkEntry(modifier_frame, width=40, height=10, font=("Arial", 20))
+        bonus_entry.grid(row=0, column=1, padx=(0, 5), pady=10, sticky="ns")
+        bonus_entry.insert(0, "0")
+        bonus_entry.configure(validate='all', validatecommand=(vcmd, '%P'))
+        penalty_label = ctk.CTkLabel(modifier_frame, text="Penalty", font=("Arial", 20, "bold"))
+        penalty_label.grid(row=0, column=2, sticky="nsew")
+        penalty_entry = ctk.CTkEntry(modifier_frame, width=40, height=10, font=("Arial", 20))
+        penalty_entry.grid(row=0, column=3, padx=(0, 5), pady=10, sticky="ns")
+        penalty_entry.insert(0, "0")
+        penalty_entry.configure(validate='all', validatecommand=(vcmd, '%P'))
+        self._skill_roll_conditions["Bonus"] = bonus_entry
+        self._skill_roll_conditions["Penalty"] = penalty_entry
+        bonus_button = ctk.CTkSegmentedButton(modifier_frame, width=20, height=15, values=["-", "+"], font=("Arial", 17, "bold"), fg_color=self._colors["button"], unselected_color=self._colors["button"])
+        penalty_button = ctk.CTkSegmentedButton(modifier_frame, width=20, height=15, values=["-", "+"], font=("Arial", 17, "bold"), fg_color=self._colors["button"], unselected_color=self._colors["button"])
+        bonus_button.grid(row=1, column=0, columnspan=2, padx=5,pady=(0, 5), sticky="nsew")
+        penalty_button.grid(row=1, column=2, columnspan=2, padx=5,pady=(0, 5), sticky="nsew")
+        bonus_button.configure(command=lambda selected, be=bonus_entry, bb=bonus_button: self._adjust_entry_values(selected, be, bb))
+        penalty_button.configure(command=lambda selected, pe=penalty_entry, pb=penalty_button: self._adjust_entry_values(selected, pe, pb))
+        return modifier_frame
+#==============================================================================================================================
+    def _setup_skill_bonusdice_frame(self):
+        bonus_die_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
+        bonus_die_frame.grid(row=3, rowspan=2, column=0, columnspan=3, pady=10, sticky="nsew")
+        bonus_die_frame.grid_rowconfigure((0, 1), weight=1)
+        bonus_die_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        dice_types=["d4", "d6", "d8", "d10", "d12", "d20"]
+        for index, dice in enumerate(dice_types):
+            column = index // 2
+            row = index % 2
+            dice_frame = self._create_skilldice_frame(bonus_die_frame, dice)
+            dice_frame.grid(row=row, column=column, padx=5, pady=5, sticky="nsew")
+#================================================================================================================================
+    def _create_skilldice_frame(self, bonus_die_frame, dice):
+        frame = ctk.CTkFrame(bonus_die_frame, fg_color=self._colors["foreground"])
+        frame.grid_rowconfigure((0, 1), weight=1)
+        frame.grid_columnconfigure((0, 1), weight=1)
+        label = ctk.CTkLabel(frame, text=dice, text_color=self._colors["text"], font=("Arial", 20, "bold"))
+        label.grid(row=0, column=0, sticky="nsew")
+        vcmd = self.register(self._entry_input_validation)
+        entry = ctk.CTkEntry(frame, width=10, height=10, font=("Arial", 20))
+        entry.grid(row=0, column=1, sticky="nsew")
+        entry.insert(0, "0")
+        entry.configure(validate='all', validatecommand=(vcmd, '%P'))
+        self._skill_dice_entries[dice] = entry
+        dice_button = ctk.CTkSegmentedButton(frame, values=["-", "+"], fg_color=self._colors["button"], unselected_color=self._colors["button"], text_color=self._colors["text"], font=("Arial", 20, "bold"))
+        dice_button.grid(row=1, column=0, columnspan=2, sticky="nsew")
+        dice_button.configure(command=lambda selected, e=entry, db=dice_button: self._adjust_entry_values(selected, e, db))
+        return frame
+#====================================================================================================================================
+    def _setup_skill_results_frame(self):
+        results_frame = ctk.CTkFrame(self._skilltab_content, corner_radius=20, fg_color=self._colors["foreground"])
+        results_frame.grid(row=5, rowspan=2, column=0, columnspan=3, pady=10, sticky="nsew")
+        results_frame.grid_rowconfigure((0, 1), weight=1)
+        results_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        result_label = ctk.CTkLabel(results_frame, text="Results: ", font=("Arial", 20), corner_radius=10)
+        result_label.grid(row=0, column=0, columnspan=3, sticky="nws")
+        skill_roll_button = ctk.CTkButton(results_frame, text="Roll", fg_color=self._colors["button"], font=("Arial", 18, "bold"), command=self._clear_skill_roll)
+        skill_roll_button.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        skill_roll_button.configure(command=lambda rl=result_label : self._skill_roll_results(rl))
+        skill_clear_button = ctk.CTkButton(results_frame, text="Clear", fg_color=self._colors["button"], font=("Arial", 18, "bold"), command= lambda rl = result_label: self._clear_skill_roll(result_label))
+        skill_clear_button.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+        skill_detail_button = ctk.CTkButton(results_frame, text="Roll\nDetails", fg_color=self._colors["button"], font=("Arial", 18, "bold"), command=self._get_skill_roll_details)
+        skill_detail_button.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
+#===============================================================================================================================================
     def _roll_custom_dice(self):
         dice_types = {'d4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12, 'd20': 20}
         # Create a pop-up window for results
         results_window = ctk.CTkToplevel(self)
-        results_window.title("Dice Roll Results")
+        results_window.title("Custom Roll Results")
         results_window.geometry("300x300")
         # Create a scrollable text box for results
         results_frame = ctk.CTkTextbox(results_window, height=350, width=420)
@@ -127,117 +236,6 @@ class DiceSection(ctk.CTkFrame):
         for entry in self._custom_dice_entries.values():
             entry.delete(0, ctk.END)
             entry.insert(0, "0")
-#=======================================================================================================================================
-    def _configure_skill_tab(self):
-        #set size of the content frame within the tab and set up grid structure for internal elements
-        self._skilltab_content = ctk.CTkFrame(self._section_tabs.tab(self._tab_names[1]), fg_color=self._colors["background"])
-        self._skilltab_content.grid(row=0, column=0, sticky="nsew")
-        self._skilltab_content.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6), weight=1, uniform="equal")
-        self._skilltab_content.grid_columnconfigure((0, 1, 2), weight=1, uniform="equal")
-        self._setup_skill_dcslider()
-        self._setup_skill_rollype_frame()
-        self._setup_skill_modifier_frame()
-        self._setup_skill_bonusdice_frame()
-        self._setup_skill_results_frame()
-#=====================================================================================================================================
-    def _setup_skill_dcslider(self):
-        dc_slider_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"], corner_radius=10)
-        dc_slider_frame.grid(row=0, column=0, columnspan=3, pady=10, sticky="nsew")
-        dc_slider_frame.grid_rowconfigure((0, 1), weight=1)
-        dc_slider_frame.grid_columnconfigure((0, 1, 2), weight=1)
-        dc_label = ctk.CTkLabel(dc_slider_frame, text="DC Difficulty", text_color=self._colors["text"], font=("Arial", 20, "bold"), corner_radius=10)
-        dc_label.grid(row=0, column=0, columnspan=3, sticky="nsew")
-        dc_slide = ctk.CTkSlider(dc_slider_frame, from_=1, to=30, fg_color=self._colors["button"])
-        dc_slide.grid(row=1, column=0, columnspan=2, pady=10, sticky="ew")
-        dc_slide.set(1)
-        entry = ctk.CTkEntry(dc_slider_frame, width=30, height=20, font=("Arial", 20))
-        entry.grid(row=1, column=2, padx=5, sticky="nsew")
-        entry.insert(0, "1")
-        dc_slide.configure(command=lambda value, e=entry : self._dc_sliding(value, e))
-        return dc_slider_frame
-#=================================================================================================================================
-    def _setup_skill_rollype_frame(self):
-        rolltype_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
-        rolltype_frame.grid(row=1, column=0, columnspan=3, pady=10, sticky="nsew")
-        rolltype_frame.grid_rowconfigure((0, 1), weight=1)
-        rolltype_frame.grid_columnconfigure((0, 1, 2), weight=1)
-        roll_label = ctk.CTkLabel(rolltype_frame, text="Roll Type", font=("Arial", 20, "bold"))
-        roll_label.grid(row=0, column=0, columnspan=3, sticky="nsew")
-        self._skill_roll_conditions["RollType"] = ctk.IntVar(value=0)
-        normal_rad = ctk.CTkRadioButton(rolltype_frame, text="Normal", font=("Arial", 15), value=0, variable=self._skill_roll_conditions["RollType"])
-        normal_rad.grid(row=1, column=0, sticky="nsew")
-        adv_rad = ctk.CTkRadioButton(rolltype_frame, text="Adv", font=("Arial", 15), value=1, variable=self._skill_roll_conditions["RollType"])
-        adv_rad.grid(row=1, column=1, sticky="nsew")
-        dis_rad = ctk.CTkRadioButton(rolltype_frame, text="Disadv", font=("Arial", 15), value=2, variable=self._skill_roll_conditions["RollType"])
-        dis_rad.grid(row=1, column=2, sticky="nsew")
-        return rolltype_frame
-#=================================================================================================================================
-    def _setup_skill_modifier_frame(self):
-        modifier_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
-        modifier_frame.grid(row=2, column=0, columnspan=3, pady=10, sticky="nsew")
-        modifier_frame.grid_rowconfigure((0, 1), weight=1)
-        modifier_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
-        bonus_label = ctk.CTkLabel(modifier_frame, text="Bonus", font=("Arial", 20, "bold"))
-        bonus_label.grid(row=0, column=0, sticky="nsew")
-        bonus_entry = ctk.CTkEntry(modifier_frame, width=40, height=10, font=("Arial", 20))
-        bonus_entry.grid(row=0, column=1, padx=(0, 5), pady=10, sticky="ns")
-        bonus_entry.insert(0, "0")
-        penalty_label = ctk.CTkLabel(modifier_frame, text="Penalty", font=("Arial", 20, "bold"))
-        penalty_label.grid(row=0, column=2, sticky="nsew")
-        penalty_entry = ctk.CTkEntry(modifier_frame, width=40, height=10, font=("Arial", 20))
-        penalty_entry.grid(row=0, column=3, padx=(0, 5), pady=10, sticky="ns")
-        penalty_entry.insert(0, "0")
-        self._skill_roll_conditions["Bonus"] = bonus_entry
-        self._skill_roll_conditions["Penalty"] = penalty_entry
-        bonus_button = ctk.CTkSegmentedButton(modifier_frame, width=20, height=15, values=["-", "+"], font=("Arial", 17, "bold"), fg_color=self._colors["button"], unselected_color=self._colors["button"])
-        penalty_button = ctk.CTkSegmentedButton(modifier_frame, width=20, height=15, values=["-", "+"], font=("Arial", 17, "bold"), fg_color=self._colors["button"], unselected_color=self._colors["button"])
-        bonus_button.grid(row=1, column=0, columnspan=2, padx=5,pady=(0, 5), sticky="nsew")
-        penalty_button.grid(row=1, column=2, columnspan=2, padx=5,pady=(0, 5), sticky="nsew")
-        bonus_button.configure(command=lambda selected, be=bonus_entry, bb=bonus_button: self._adjust_dice_values(selected, be, bb))
-        penalty_button.configure(command=lambda selected, pe=penalty_entry, pb=penalty_button: self._adjust_dice_values(selected, pe, pb))
-        return modifier_frame
-#==============================================================================================================================
-    def _setup_skill_bonusdice_frame(self):
-        bonus_die_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
-        bonus_die_frame.grid(row=3, rowspan=2, column=0, columnspan=3, pady=10, sticky="nsew")
-        bonus_die_frame.grid_rowconfigure((0, 1), weight=1)
-        bonus_die_frame.grid_columnconfigure((0, 1, 2), weight=1)
-        dice_types=["d4", "d6", "d8", "d10", "d12", "d20"]
-        for index, dice in enumerate(dice_types):
-            column = index // 2
-            row = index % 2
-            dice_frame = self._create_skilldice_frame(bonus_die_frame, dice)
-            dice_frame.grid(row=row, column=column, padx=5, pady=5, sticky="nsew")
-#================================================================================================================================
-    def _create_skilldice_frame(self, bonus_die_frame, dice):
-        frame = ctk.CTkFrame(bonus_die_frame, fg_color=self._colors["foreground"])
-        frame.grid_rowconfigure((0, 1), weight=1)
-        frame.grid_columnconfigure((0, 1), weight=1)
-        label = ctk.CTkLabel(frame, text=dice, text_color=self._colors["text"], font=("Arial", 20, "bold"))
-        label.grid(row=0, column=0, sticky="nsew")
-        entry = ctk.CTkEntry(frame, width=10, height=10, font=("Arial", 20))
-        entry.grid(row=0, column=1, sticky="nsew")
-        entry.insert(0, "0")
-        self._skill_dice_entries[dice] = entry
-        dice_button = ctk.CTkSegmentedButton(frame, values=["-", "+"], fg_color=self._colors["button"], unselected_color=self._colors["button"], text_color=self._colors["text"], font=("Arial", 20, "bold"))
-        dice_button.grid(row=1, column=0, columnspan=2, sticky="nsew")
-        dice_button.configure(command=lambda selected, e=entry, db=dice_button: self._adjust_dice_values(selected, e, db))
-        return frame
-#====================================================================================================================================
-    def _setup_skill_results_frame(self):
-        results_frame = ctk.CTkFrame(self._skilltab_content, corner_radius=20, fg_color=self._colors["foreground"])
-        results_frame.grid(row=5, rowspan=2, column=0, columnspan=3, pady=10, sticky="nsew")
-        results_frame.grid_rowconfigure((0, 1), weight=1)
-        results_frame.grid_columnconfigure((0, 1, 2), weight=1)
-        result_label = ctk.CTkLabel(results_frame, text="Results: ", font=("Arial", 20), corner_radius=10)
-        result_label.grid(row=0, column=0, columnspan=3, sticky="nws")
-        skill_roll_button = ctk.CTkButton(results_frame, text="Roll", fg_color=self._colors["button"], font=("Arial", 18, "bold"), command=self._clear_skill_roll)
-        skill_roll_button.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-        skill_roll_button.configure(command=lambda rl=result_label : self._skill_roll_results(rl))
-        skill_clear_button = ctk.CTkButton(results_frame, text="Clear", fg_color=self._colors["button"], font=("Arial", 18, "bold"), command= lambda rl = result_label: self._clear_skill_roll(result_label))
-        skill_clear_button.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
-        skill_detail_button = ctk.CTkButton(results_frame, text="Roll\nDetails", fg_color=self._colors["button"], font=("Arial", 18, "bold"))
-        skill_detail_button.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
 #=============================================================================================================================================    
     def _dc_sliding(self, value, entry):
         entry.delete(0, ctk.END)
@@ -245,43 +243,67 @@ class DiceSection(ctk.CTkFrame):
         self._skill_roll_conditions["DC"] = int(value)
 #==============================================================================================================================================
     def _skill_roll_results(self, result_label):
+        self._skill_dice_roll_details_text = (f"Roll Summary:\n")
         rolltype = self._skill_roll_conditions["RollType"].get()
         dc = int(self._skill_roll_conditions["DC"])
         bonus = int(self._skill_roll_conditions["Bonus"].get())
         penalty = int(self._skill_roll_conditions["Penalty"].get())
-        bonus_dice = 0
+        roll_one, roll_two = random.randint(1, 20), random.randint(1, 20)
+        self._skill_dice_roll_details_text += (f"DC: {dc}\nPrimary d20: {roll_one} (normal roll)\nSecondary d20: {roll_two}\nBonus: +{bonus}\nPenalty: -{penalty}\n{'-'*30}\nBonus Dice:\n\n")
+        bonus_dice = self._skill_bonus_roll()
         dice_roll = 0
+        print(bonus_dice)
         #check if roll is a normal roll
         if rolltype == 0:
-            dice_roll = random.randint(1, 20)
-            #check for critial success or failure
-            if dice_roll == 20:
-                result_label.configure(text="Critial Success!", text_color=self._colors["crit_success"])
-                print(dice_roll, dc)
-                return
-            if dice_roll == 1: 
-                result_label.configure(text="Critial Failure!", text_color=self._colors["crit_fail"])
-                print(dice_roll, dc)
-                return
-            dice_total = (dice_roll + bonus + bonus_dice - penalty)
-            if dice_total >= dc:
-                result_label.configure(text="Success!", text_color=self._colors["success"])
-                print(dice_total, dc)
-                return
-            else:
-                result_label.configure(text="Failure!", text_color=self._colors["fail"])
-                print(dice_roll, dc)
-                return
-        #check if roll has advantage
+            dice_roll = roll_one
         elif rolltype == 1:
-            pass
-        #check if roll has disadvantage
+            dice_roll = max(roll_one, roll_two)
         elif rolltype == 2:
-            pass
-        
-
-#=============================================================================================================================================
-
+            dice_roll = min(roll_one, roll_two)
+        #check for critial success or failure
+        if dice_roll == 20:
+            result_label.configure(text="Critial Success!", text_color=self._colors["crit_success"])
+            return
+        if dice_roll == 1: 
+            result_label.configure(text="Critial Failure!", text_color=self._colors["crit_fail"])
+            return
+        dice_total = (dice_roll + bonus + bonus_dice - penalty)
+        if dice_total >= dc:
+            result_label.configure(text="Success!", text_color=self._colors["success"])
+            return
+        else:
+            result_label.configure(text="Failure!", text_color=self._colors["fail"])
+            return
+#============================================================================================================================================
+    def _skill_bonus_roll(self):
+        dice_types = {'d4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12, 'd20': 20}
+        total_sum = 0
+        all_rolls = {}
+        totals_by_dice = {}
+        roll_details_text = ""
+        roll_summary_text = ""
+        for dice, entry in self._skill_dice_entries.items():
+            try:
+                count = int(entry.get())
+            except ValueError:
+                count = 0
+            if count > 0:
+                rolls = [random.randint(1, dice_types[dice]) for _ in range(count)]
+                all_rolls[dice] = rolls
+                totals_by_dice[dice] = sum(rolls)
+                total_sum += sum(rolls)
+                roll_details_text += (f"{dice} results:\n")
+                for roll in rolls:
+                    roll_details_text += (f"{roll}\n")
+                roll_details_text += "\n"
+        roll_summary_text += (f"Sum of all dice = {total_sum}\n")
+        for dice, rolls, in all_rolls.items():
+            highest_roll = max(rolls)
+            lowest_roll = min(rolls)
+            roll_summary_text += (f"{dice}: Highest = {highest_roll}, Lowest: {lowest_roll}, Total = {totals_by_dice[dice]}\n")
+        self._skill_dice_roll_details_text += (f"{roll_summary_text}\n")
+        self._skill_dice_roll_details_text += roll_details_text
+        return total_sum
 #=============================================================================================================================================
     def _clear_skill_roll(self, result_label):
         for entry in self._skill_dice_entries.values():
@@ -291,6 +313,29 @@ class DiceSection(ctk.CTkFrame):
         self._skill_roll_conditions["Bonus"].insert(0, "0")
         self._skill_roll_conditions["Penalty"].delete(0, ctk.END)
         self._skill_roll_conditions["Penalty"].insert(0, "0")
-        self._skill_dice_roll_details = ""
-        result_label.configure(text="")
+        self._skill_dice_roll_details_text = ""
+        result_label.configure(text="Results: ")
+#=============================================================================================================================================
+    def _get_skill_roll_details(self):
+        results_window = ctk.CTkToplevel(self)
+        results_window.title("Skill Roll Details")
+        results_window.geometry("300x300")
+        results_frame = ctk.CTkTextbox(results_window, height=350, width=420)
+        results_frame.pack(pady=1)
+        results_frame.insert('1.0', f"{self._skill_dice_roll_details_text}")
+        results_frame.configure(state="disabled")
 #===============================================================================================================================
+    def _entry_input_validation(self, value):
+        if value == "" or value == "0":
+            return True
+        return str.isdigit(value)
+#===============================================================================================================
+    def _adjust_entry_values(self, selected, entry, value_button):
+        current_val = int(entry.get())
+        if selected == "+":
+            current_val += 1
+        elif selected == "-" and current_val > 0:
+            current_val -= 1
+        entry.delete(0, ctk.END)
+        entry.insert(0, str(current_val))
+        value_button.set("")
