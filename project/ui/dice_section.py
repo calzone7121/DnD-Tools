@@ -5,7 +5,7 @@ class DiceSection(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         # Initialize dice_entries dictionary to store the text box references for each dice
-        self._colors = {"background": "#222831", "foreground": "#31363F", "button": "#76ABAE", "text": "#EEEEEE", "transp": "transparent", "success": "#228B22", "fail": "#880808", "crit_success": "#7CFC00", "crit_fail": "#EE4B2B"}
+        self._colors = {"background": "#222831", "foreground": "#31363F", "button": "#76ABAE", "submit": "#0000FF", "text": "#EEEEEE", "border": "#EEEEEE", "success": "#228B22", "fail": "#880808", "crit_success": "#7CFC00", "crit_fail": "#EE4B2B"}
         self._tab_font = ctk.CTkFont(family="Arial", size=14, weight="bold")
         self._tab_names = ["Custom", "Skill", "Action", "Damage"]
         #initialize data to be stored and shared throughout the class
@@ -68,12 +68,13 @@ class DiceSection(ctk.CTkFrame):
         for index, dice in enumerate(dice_types):
             row = index // 2
             column = index % 2
-            dice_frame = self._create_dice_frame_prototype(customdice_content, dice, self._tab_names[0])
-            dice_frame.grid(row=row, column=column, padx=10, pady=10, sticky="nsew")
+            dice_frame = self._create_general_dice_frame(customdice_content, dice, self._tab_names[0])
+            dice_frame.grid(row=row, column=column, padx=10, pady=20, sticky="nsew")
+            dice_frame.configure(border_width=2, border_color=self._colors["border"])
         # Create roll and clear button with necessary parameters
-        roll_button = ctk.CTkButton(customdice_content, text="Roll Dice", font=button_font, fg_color=self._colors["button"], text_color=self._colors["text"], command=self._custom_dice_roll_results)
+        roll_button = ctk.CTkButton(customdice_content, text="Roll Dice", font=button_font, fg_color=self._colors["submit"], text_color=self._colors["text"], command=self._custom_dice_roll_results)
         roll_button.grid(row=3, column=0, columnspan=2, pady=10, padx=10, sticky="nsew")
-        clear_button = ctk.CTkButton(customdice_content, text = "Clear", font=button_font, fg_color=self._colors["button"], text_color=self._colors["text"], command=self._clear_custom_roll)
+        clear_button = ctk.CTkButton(customdice_content, text = "Clear", font=button_font, fg_color=self._colors["submit"], text_color=self._colors["text"], command=self._clear_custom_roll)
         clear_button.grid(row=4, column=0, columnspan=2, padx=10, sticky="nsew")
 #=======================================================================================================================================
     '''
@@ -97,7 +98,7 @@ class DiceSection(ctk.CTkFrame):
     '''
     def _create_skill_dcslider(self):
         #create frame
-        dc_slider_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"], corner_radius=10)
+        dc_slider_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         dc_slider_frame.grid(row=0, column=0, pady=10, sticky="nsew")
         dc_slider_frame.grid_rowconfigure((0, 1), weight=1)
         dc_slider_frame.grid_columnconfigure((0, 1, 2), weight=1)
@@ -105,14 +106,14 @@ class DiceSection(ctk.CTkFrame):
         slider_font=("Arial", 20, "bold")
         #Create label
         dc_label = ctk.CTkLabel(dc_slider_frame, text="DC (Difficulty)", text_color=self._colors["text"], font=slider_font, corner_radius=10)
-        dc_label.grid(row=0, column=0, columnspan=3, sticky="nsew")
+        dc_label.grid(row=0, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
         #create slider
         dc_slide = ctk.CTkSlider(dc_slider_frame, from_=1, to=30, fg_color=self._colors["button"])
-        dc_slide.grid(row=1, column=0, columnspan=2, pady=10, sticky="ew")
+        dc_slide.grid(row=1, column=0, columnspan=2, padx=10, pady=5, sticky="ew")
         dc_slide.set(1)
         #create entry
         slide_entry = ctk.CTkEntry(dc_slider_frame, width=30, height=20, font=slider_font)
-        slide_entry.grid(row=1, column=2, padx=5, sticky="nsew")
+        slide_entry.grid(row=0, rowspan=2, column=2, padx=10, pady=10, sticky="nsew")
         slide_entry.insert(0, "1")
         dc_slide.configure(command=lambda value, e=slide_entry : self._dc_sliding(value, e))
         return dc_slider_frame
@@ -122,23 +123,23 @@ class DiceSection(ctk.CTkFrame):
     '''
     def _create_skill_rolltype_frame(self):
         #create frame
-        skill_rolltype_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
-        skill_rolltype_frame.grid(row=1, column=0, pady=10, sticky="nsew")
+        skill_rolltype_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
+        skill_rolltype_frame.grid(row=1, column=0, sticky="nsew")
         skill_rolltype_frame.grid_rowconfigure((0, 1), weight=1)
         skill_rolltype_frame.grid_columnconfigure((0, 1, 2), weight=1)
         #create font variable
         rolltype_font = ("Arial", 17, "bold")
         #create label
         rolltype_label = ctk.CTkLabel(skill_rolltype_frame, text="Roll Type", font=("Arial", 20, "bold"))
-        rolltype_label.grid(row=0, column=0, columnspan=3, sticky="nsew")
-        self._skill_roll_conditions_dict_dict["RollType"] = ctk.IntVar(value=0)
+        rolltype_label.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
         #create and configure radio button
-        normal_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="None", font=rolltype_font, value=0, variable=self._skill_roll_conditions_dict_dict["RollType"])
-        normal_rad.grid(row=1, column=0, sticky="nsew")
-        adv_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="Adv", font=rolltype_font, value=1, variable=self._skill_roll_conditions_dict_dict["RollType"])
-        adv_rad.grid(row=1, column=1, sticky="nsew")
-        dis_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="Disadv", font=rolltype_font, value=2, variable=self._skill_roll_conditions_dict_dict["RollType"])
-        dis_rad.grid(row=1, column=2, sticky="nsew")
+        self._skill_roll_conditions_dict_dict["RollType"] = ctk.IntVar(value=0)
+        normal_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="None", font=rolltype_font, fg_color=self._colors["button"], value=0, variable=self._skill_roll_conditions_dict_dict["RollType"])
+        normal_rad.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        adv_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="Adv", font=rolltype_font, fg_color=self._colors["button"], value=1, variable=self._skill_roll_conditions_dict_dict["RollType"])
+        adv_rad.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+        dis_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="Disadv", font=rolltype_font, fg_color=self._colors["button"], value=2, variable=self._skill_roll_conditions_dict_dict["RollType"])
+        dis_rad.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
         return skill_rolltype_frame
 #=================================================================================================================================
     '''
@@ -146,7 +147,7 @@ class DiceSection(ctk.CTkFrame):
     '''
     def _create_skill_modifier_frame(self):
         #create frame
-        modifier_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
+        modifier_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         modifier_frame.grid(row=2, column=0, pady=10, sticky="nsew")
         modifier_frame.grid_rowconfigure((0, 1), weight=1)
         modifier_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
@@ -154,17 +155,17 @@ class DiceSection(ctk.CTkFrame):
         modifier_font = ("Arial", 20, "bold")
         #create labels
         bonus_label = ctk.CTkLabel(modifier_frame, text="Bonus", font=modifier_font)
-        bonus_label.grid(row=0, column=0, sticky="nsew")
+        bonus_label.grid(row=0, column=0,padx=5, pady=5, sticky="nsew")
         penalty_label = ctk.CTkLabel(modifier_frame, text="Penalty", font=modifier_font)
-        penalty_label.grid(row=0, column=2, sticky="nsew")
+        penalty_label.grid(row=0, column=2, padx=5, pady=5, sticky="nsew")
         #Create entries
         vcmd = self.register(self._entry_input_validation)
         bonus_entry = ctk.CTkEntry(modifier_frame, width=40, height=10, font=modifier_font)
-        bonus_entry.grid(row=0, column=1, padx=(0, 5), pady=10, sticky="ns")
+        bonus_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ns")
         bonus_entry.insert(0, "0")
         bonus_entry.configure(validate='all', validatecommand=(vcmd, '%P'))
         penalty_entry = ctk.CTkEntry(modifier_frame, width=40, height=10, font=modifier_font)
-        penalty_entry.grid(row=0, column=3, padx=(0, 5), pady=10, sticky="ns")
+        penalty_entry.grid(row=0, column=3, padx=5, pady=5, sticky="ns")
         penalty_entry.insert(0, "0")
         penalty_entry.configure(validate='all', validatecommand=(vcmd, '%P'))
         self._skill_roll_conditions_dict_dict["Bonus"] = bonus_entry
@@ -183,7 +184,7 @@ class DiceSection(ctk.CTkFrame):
     '''
     def _create_skill_bonusdice_frame(self):
         #create dice frame to house all 6 die types
-        bonus_die_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"])
+        bonus_die_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"], border_width=2, border_color=self._colors["border"])
         bonus_die_frame.grid(row=3, rowspan=2, column=0, pady=10, sticky="nsew")
         bonus_die_frame.grid_rowconfigure((0, 1), weight=1)
         bonus_die_frame.grid_columnconfigure((0, 1, 2), weight=1)
@@ -195,15 +196,16 @@ class DiceSection(ctk.CTkFrame):
         for index, dice in enumerate(dice_types):
             column = index // 2
             row = index % 2
-            dice_frame = self._create_dice_frame_prototype(bonus_die_frame, dice, self._tab_names[1])
+            dice_frame = self._create_general_dice_frame(bonus_die_frame, dice, self._tab_names[1])
             dice_frame.grid(row=row, column=column, padx=5, pady=5, sticky="nsew")
+            dice_frame.configure(corner_radius=10)
 #================================================================================================================================
     '''
         Method to create result frame that houses buttons and result status message of the skill roll
     '''
     def _create_skill_results_frame(self):
         #create result frame to house subsequent frames and define grid structure
-        results_frame = ctk.CTkFrame(self._skilltab_content, corner_radius=20, fg_color=self._colors["foreground"])
+        results_frame = ctk.CTkFrame(self._skilltab_content, corner_radius=20, fg_color=self._colors["background"])
         results_frame.grid(row=5, rowspan=2, column=0, pady=10, sticky="nsew")
         results_frame.grid_rowconfigure((0, 1), weight=1)
         results_frame.grid_columnconfigure((0, 1, 2), weight=1)
@@ -211,17 +213,17 @@ class DiceSection(ctk.CTkFrame):
         button_font = ("Arial", 18, "bold")
         label_font = ("Arial", 20)
         #create result label to display success or failure
-        result_label = ctk.CTkLabel(results_frame, text="Results: ", font=label_font, corner_radius=10)
-        result_label.grid(row=0, column=0, columnspan=3, sticky="nws")
+        result_label = ctk.CTkLabel(results_frame, text="Results: ", font=label_font)
+        result_label.grid(row=0, column=0, columnspan=3, padx=6, pady=6, sticky="nws")
         #create dice roll button
-        skill_roll_button = ctk.CTkButton(results_frame, text="Roll", fg_color=self._colors["button"], font=button_font, command=self._clear_skill_roll)
+        skill_roll_button = ctk.CTkButton(results_frame, text="Roll", fg_color=self._colors["submit"], font=button_font, command=self._clear_skill_roll)
         skill_roll_button.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
         skill_roll_button.configure(command=lambda rl=result_label : self._skill_dice_roll_results(rl))
         #create section clear button
-        skill_clear_button = ctk.CTkButton(results_frame, text="Clear", fg_color=self._colors["button"], font=button_font, command= lambda rl = result_label: self._clear_skill_roll(rl))
+        skill_clear_button = ctk.CTkButton(results_frame, text="Clear", fg_color=self._colors["submit"], font=button_font, command= lambda rl = result_label: self._clear_skill_roll(rl))
         skill_clear_button.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
         #create button to display roll details
-        skill_detail_button = ctk.CTkButton(results_frame, text="Roll\nDetails", fg_color=self._colors["button"], font=button_font, command=self._get_skill_roll_details)
+        skill_detail_button = ctk.CTkButton(results_frame, text="Roll\nDetails", fg_color=self._colors["submit"], font=button_font, command=self._get_skill_roll_details)
         skill_detail_button.grid(row=1, column=2, padx=5, pady=5, sticky="nsew")
 #==================================================================================================================================================================================
     '''
@@ -229,18 +231,16 @@ class DiceSection(ctk.CTkFrame):
     '''
     def _configure_action_tab(self):
         #create initial frame to house all other sections 
-        self._action_tab_content = ctk.CTkFrame(self._section_tabs.tab(self._tab_names[2]), fg_color=self._colors["text"])
+        self._action_tab_content = ctk.CTkFrame(self._section_tabs.tab(self._tab_names[2]), fg_color=self._colors["background"])
         self._action_tab_content.grid(row=0, column=0, sticky="nsew")
-        self._action_tab_content.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8), weight=1)
-        self._action_tab_content.grid_columnconfigure((0), weight=1)
+        self._action_tab_content.grid_rowconfigure((0, 1, 2, 3, 4, 5, 6, 7), weight=1, uniform="equal")
+        self._action_tab_content.grid_columnconfigure((0), weight=1, uniform="equal")
         #call methods for creating individual frames in action tab
         self._create_targetac_frame()
         self._create_action_rolltype_frame()
         self._create_action_modifiers_frame()
         self._create_action_bonus_dice_frame()
-        #self._create_action_result_frame()
-        #self._create_action_button_frame()
-        pass
+        self._create_action_result_frame()
 #==================================================================================================================================================================================
     '''
         Method to setup the frame for setting the target's AC
@@ -248,96 +248,103 @@ class DiceSection(ctk.CTkFrame):
     # separate this into two methods that are called from the one below to have two frames, ac and cover
     def _create_targetac_frame(self):
         #configure frame grid
-        root_ac_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["foreground"])
+        root_ac_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         root_ac_frame.grid(row=0, column=0, sticky="nsew")
         root_ac_frame.grid_rowconfigure((0, 1), weight=1)
         root_ac_frame.grid_columnconfigure((0, 1), weight=1)
         #create font variable
-        ac_font = ("Arial", 20, "bold")
+        ac_font = ("Arial", 20)
+        button_font=("Arial", 20, "bold")
         #Create label
         ac_label = ctk.CTkLabel(root_ac_frame, text="Target AC", font=ac_font, text_color=self._colors["text"])
         ac_label.grid(row=0, rowspan=2, column=0)
         #create ac entry 
         vcmd = self.register(self._entry_input_validation)
         ac_entry = ctk.CTkEntry(root_ac_frame, font=ac_font, validate='all', validatecommand=(vcmd, '%P'))
-        ac_entry.grid(row=0, column=1, sticky="s")
+        ac_entry.grid(row=0, column=1, padx=10, pady=(5, 0), sticky="nsew")
         ac_entry.insert(0, "0")
         #create ac button
-        ac_button = ctk.CTkSegmentedButton(root_ac_frame, values=['-', '+'], font=ac_font)
-        ac_button.grid(row=1, column=1, padx=10, sticky="new")
+        ac_button = ctk.CTkSegmentedButton(root_ac_frame, values=['-', '+'], font=button_font, fg_color=self._colors["button"], unselected_color=self._colors["button"])
+        ac_button.grid(row=1, column=1, padx=10, pady=(0, 5), sticky="nsew")
         ac_button.configure(command=lambda selected, ae=ac_entry, ab=ac_button: self._adjust_modifier_entry_values(selected, ae, ab))
-#==================================================================================================================================================================================
-
 #==================================================================================================================================================================================
     '''
         Method to setup the frame for setting the rolltype and cover status
     '''
     def _create_action_rolltype_frame(self):
         #configure rolltype frame grid structure
-        rolltype_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["foreground"])
+        rolltype_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["text"])
         rolltype_frame.grid(row=1, column=0, sticky="nsew")
-        rolltype_frame.grid_rowconfigure((0, 1, 2), weight=1)
-        rolltype_frame.grid_columnconfigure((0, 1), weight=1)
+        rolltype_frame.grid_rowconfigure((0, 1, 2), weight=1, uniform="equal")
+        rolltype_frame.grid_columnconfigure((0, 1), weight=1, uniform="equal")
         #create font variable
-        rolltype_font = ("Arial", 18)
+        rolltype_font = ("Arial", 15)
         #create radiobuttons for advantage type
         self._action_tab_values_dict["rolltype"] = ctk.IntVar(value=0)
-        normal_rad = ctk.CTkRadioButton(rolltype_frame, text="None", font=rolltype_font, value=0, variable=self._action_tab_values_dict["rolltype"])
-        normal_rad.grid(row=0, column=0, padx=10, sticky="nsew")
-        adv_rad = ctk.CTkRadioButton(rolltype_frame, text="Adv", font=rolltype_font, value=1, variable=self._action_tab_values_dict["rolltype"])
-        adv_rad.grid(row=1, column=0, padx=10, sticky="nsew")
-        disadv_rad = ctk.CTkRadioButton(rolltype_frame, text="Disadv", font=rolltype_font, value=2, variable=self._action_tab_values_dict["rolltype"])
-        disadv_rad.grid(row=2, column=0, padx=10, sticky="nsew")
+        normal_rad = ctk.CTkRadioButton(rolltype_frame, text="Normal", font=rolltype_font, fg_color=self._colors["button"], value=0, variable=self._action_tab_values_dict["rolltype"])
+        normal_rad.grid(row=0, column=0, padx=5, pady=(3, 0), sticky="nsew")
+        adv_rad = ctk.CTkRadioButton(rolltype_frame, text="Adv", font=rolltype_font, fg_color=self._colors["button"], value=1, variable=self._action_tab_values_dict["rolltype"])
+        adv_rad.grid(row=1, column=0, padx=5, pady=0, sticky="nsew")
+        disadv_rad = ctk.CTkRadioButton(rolltype_frame, text="Disadv", font=rolltype_font, fg_color=self._colors["button"], value=2, variable=self._action_tab_values_dict["rolltype"])
+        disadv_rad.grid(row=2, column=0, padx=5, pady=(0, 3), sticky="nsew")
         # Create cover radio button
         self._action_tab_values_dict["cover"] = ctk.IntVar(value=0)
-        nocover_rad = ctk.CTkRadioButton(rolltype_frame, text="No Cover", font=rolltype_font, value=0, variable=self._action_tab_values_dict["cover"])
-        nocover_rad.grid(row=0, column=1, padx=10, sticky="nsew")
-        halfcover_rad = ctk.CTkRadioButton(rolltype_frame, text="1/2 Cover", font=rolltype_font, value=1, variable=self._action_tab_values_dict["cover"])
-        halfcover_rad.grid(row=1, column=1, padx=10, sticky="nsew")
-        mostcover_rad = ctk.CTkRadioButton(rolltype_frame, text="3/4 Cover", font=rolltype_font, value=2, variable=self._action_tab_values_dict["cover"])
-        mostcover_rad.grid(row=2, column=1, padx=10, sticky="nsew")
+        nocover_rad = ctk.CTkRadioButton(rolltype_frame, text="No Cover", font=rolltype_font, fg_color=self._colors["button"], value=0, variable=self._action_tab_values_dict["cover"])
+        nocover_rad.grid(row=0, column=1, padx=5, pady=(3, 0), sticky="nsew")
+        halfcover_rad = ctk.CTkRadioButton(rolltype_frame, text="1/2 Cover", font=rolltype_font, fg_color=self._colors["button"], value=1, variable=self._action_tab_values_dict["cover"])
+        halfcover_rad.grid(row=1, column=1, padx=5, pady=0, sticky="nsew")
+        mostcover_rad = ctk.CTkRadioButton(rolltype_frame, text="3/4 Cover", font=rolltype_font, fg_color=self._colors["button"], value=2, variable=self._action_tab_values_dict["cover"])
+        mostcover_rad.grid(row=2, column=1, padx=5, pady=(0, 3), sticky="nsew")
 #==================================================================================================================================================================================
     '''
         Method to setup the frame for setting the modifiers for the action roll
     '''
     def _create_action_modifiers_frame(self):
-        modifier_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["foreground"])
-        modifier_frame.grid(row=2, rowspan=3, column=0, sticky="nsew")
+        modifier_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
+        modifier_frame.grid(row=2, rowspan=2, column=0, pady=5, sticky="nsew")
         modifier_frame.grid_rowconfigure((0, 1), weight=1)
         modifier_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
-        modifier_types = ["Ablty", "Prof", "Item", "Class Ft", "Misc"]
+        modifier_types = ["Ability", "Prof", "Item", "Class Ft", "Misc"]
         frame_pos = [(0, 0), (0, 2), (0, 4), (1, 1), (1, 3)]
         for index, mod in enumerate(modifier_types):
-            self._create_mod_frame(modifier_frame, frame_pos[index], mod)
+            mod_frame = self._create_mod_frame(modifier_frame, frame_pos[index], mod)
+            mod_frame.grid(row=frame_pos[index][0], column=frame_pos[index][1], columnspan=2, padx=5, pady=2, sticky="nsew")
 #==================================================================================================================================================================================
     def _create_mod_frame(self, root_frame, position, mod):
-        frame=ctk.CTkFrame(root_frame, fg_color="black")
-        frame.grid(row=position[0], column=position[1], columnspan=2, padx=0, pady=0)
+        #configure frame
+        frame=ctk.CTkFrame(root_frame, fg_color=self._colors["background"])
         frame.grid_rowconfigure((0, 1, 2), weight=1)
         frame.grid_columnconfigure((0, 1), weight=1)
-        frame_label=ctk.CTkLabel(frame, text=mod, font=("Arial", 18))
-        frame_label.grid(row=0, column=0, columnspan=2, padx=1, pady=1, sticky="nsew")
+        #create font variables
+        label_font = ("Arial", 16)
+        button_font = ("Arial", 15, "bold")
+        #create label
+        frame_label=ctk.CTkLabel(frame, text=mod, font=label_font)
+        frame_label.grid(row=0, column=0, columnspan=2, padx=1, pady=(0, 0), sticky="nsew")
+        #create entry
         vcmd = self.register(self._entry_input_validation)
         frame_entry=ctk.CTkEntry(frame, height=20, font=("Arial", 15), validate='all', validatecommand=(vcmd, '%P'))
-        frame_entry.grid(row=1, column=0, columnspan=2, padx=1, pady=1, sticky="nsew")
+        frame_entry.grid(row=1, column=0, columnspan=2, padx=1, pady=(0, 0), sticky="nsew")
         frame_entry.insert(0, "0")
-        frame_button=ctk.CTkSegmentedButton(frame, values=['-', '+'])
+        #create button
+        frame_button=ctk.CTkSegmentedButton(frame, values=['-', '+'], font=button_font, fg_color=self._colors["button"], unselected_color=self._colors["button"])
         frame_button.grid(row=2, column=0, columnspan=2, padx=1, pady=1, sticky="nsew")
         frame_button.configure(command=lambda selected, e=frame_entry, b=frame_button: self._adjust_modifier_entry_values(selected, e, b))
+        return frame
 #==================================================================================================================================================================================
     '''
         Method to setup the frame for setting the rolltype and cover status
     '''
     def _create_action_bonus_dice_frame(self):
-        action_dice_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["foreground"])
-        action_dice_frame.grid(row=5, rowspan=2, column=0, sticky="nsew")
+        action_dice_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["text"])
+        action_dice_frame.grid(row=4, rowspan=2, column=0, sticky="nsew")
         action_dice_frame.grid_rowconfigure((0, 1), weight=1)
         action_dice_frame.grid_columnconfigure((0, 1, 2), weight=1)
         dice_types=["d4", "d6", "d8", "d10", "d12", "d20"]
         for index, dice in enumerate(dice_types):
             column = index // 2
             row = index % 2
-            dice_frame = self._create_dice_frame_prototype(action_dice_frame, dice, self._tab_names[2])
+            dice_frame = self._create_general_dice_frame(action_dice_frame, dice, self._tab_names[2])
             dice_frame.grid(row=row, column=column, padx=5, pady=5, sticky="nsew")
         pass
 #==================================================================================================================================================================================
@@ -345,16 +352,23 @@ class DiceSection(ctk.CTkFrame):
         Method to setup the frame for setting the rolltype and cover status
     '''
     def _create_action_result_frame(self):
+        #configure frame and grid structure
         action_result_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["foreground"])
-        action_result_frame.grid(row=7, column=0, sticky="nsew")
-        pass
-#==================================================================================================================================================================================
-    '''
-        Method to setup the frame for setting the rolltype and cover status
-    '''
-    def _create_action_button_frame(self):
-        action_button_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["foreground"])
-        action_button_frame.grid(row=8, column=0, sticky="nsew")
+        action_result_frame.grid(row=6, rowspan=2, column=0, sticky="nsew")
+        action_result_frame.grid_rowconfigure((0, 1), weight=1)
+        action_result_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        #create result label
+        result_font=("Arial", 20, "bold")
+        result_label = ctk.CTkLabel(action_result_frame, text="Results: ", font=result_font)
+        result_label.grid(row=0, column=0, columnspan=3, sticky="w")
+        #create buttons
+        button_font=("Arial", 18, "bold")
+        roll_button = ctk.CTkButton(action_result_frame, text="Roll", font=button_font, fg_color=self._colors["submit"])
+        roll_button.grid(row=1, column=0, padx=3, sticky="nsew")
+        clear_button = ctk.CTkButton(action_result_frame, text="Clear", font=button_font, fg_color=self._colors["submit"])
+        clear_button.grid(row=1, column=1, padx=3, sticky="nsew")
+        detail_button = ctk.CTkButton(action_result_frame, text="Detail", font=button_font, fg_color=self._colors["submit"])
+        detail_button.grid(row=1, column=2, padx=3, sticky="nsew")
         pass
 #==================================================================================================================================================================================
     '''
@@ -546,17 +560,18 @@ class DiceSection(ctk.CTkFrame):
         value_button.set("")
 #=====================================================================================================================================
     '''
-        test method to use for all dice frame creations within the tabs instead of needing multiple
+        method to use for all dice frame creations within the tabs instead of needing multiple
     '''
-    def _create_dice_frame_prototype(self, root_frame, dice, tab_name):
+    def _create_general_dice_frame(self, root_frame, dice, tab_name):
         #Create dice frame with grid structure
         dice_frame = ctk.CTkFrame(root_frame, fg_color=self._colors["foreground"])
         dice_frame.grid_rowconfigure((0, 1), weight=1)
         dice_frame.grid_columnconfigure((0, 1), weight=1)
         #create font for dice
-        dice_font = ("Arial", 20, "bold")
+        dice_font = ("Arial", 20)
+        button_font = ("Arial", 20, "bold")
         #create dice label
-        dice_label = ctk.CTkLabel(dice_frame, text=dice, text_color=self._colors["text"], font=dice_font)
+        dice_label = ctk.CTkLabel(dice_frame, text=dice, text_color=self._colors["text"], font=dice_font, fg_color=self._colors["foreground"])
         dice_label.grid(row=0, column=0, sticky="nsew")
         #Create dice entries
         vcmd=self.register(self._entry_input_validation)
@@ -573,7 +588,8 @@ class DiceSection(ctk.CTkFrame):
         elif tab_name == self._tab_names[3]:
             self._custom_dice_entries[dice] = dice_entry
         #create segmented button for dice values
-        dice_button = ctk.CTkSegmentedButton(dice_frame, values=['-','+'], fg_color=self._colors["button"], unselected_color=self._colors["button"], text_color=self._colors["text"])
+        dice_button = ctk.CTkSegmentedButton(dice_frame, values=['-','+'], fg_color=self._colors["button"], unselected_color=self._colors["button"], text_color=self._colors["text"], font=button_font)
         dice_button.grid(row=1, column=0, columnspan=2, sticky="nsew")
         dice_button.configure(command=lambda selected, de=dice_entry, db=dice_button: self._adjust_dice_entry_values(selected, de, db))
         return dice_frame
+#============================================================================================================================================================================================
