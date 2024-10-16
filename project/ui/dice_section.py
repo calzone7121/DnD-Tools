@@ -14,7 +14,7 @@ class DiceSection(ctk.CTkFrame):
         self._skill_tab_values_dict = {"DC": 1, "RollType": 0, "Bonus": 0, "Penalty": 0}
         self._skill_dice_entries = {}
         self._skill_dice_roll_details_text = ""
-        self._action_tab_values_dict = {"AC": 0, "rolltype": 0, "cover": 0, "ability": 0, "prof": 0, "item": 0, "classft": 0, "misc": 0}
+        self._action_tab_values_dict = {"AC": 0, "rolltype": 0, "cover": 0, "Ability": 0, "Prof": 0, "Item": 0, "Class Ft": 0, "Misc": 0}
         self._action_dice_entries = {}
         self._action_dice_roll_details_text = ""
         self._damage_tab_values_dict ={}
@@ -144,7 +144,7 @@ class DiceSection(ctk.CTkFrame):
         rolltype_label.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky="nsew")
         #create and configure radio button
         self._skill_tab_values_dict["RollType"] = ctk.IntVar(value=0)
-        normal_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="None", fg_color=self._colors["button"], value=0, variable=self._skill_tab_values_dict["RollType"])
+        normal_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="Normal", fg_color=self._colors["button"], value=0, variable=self._skill_tab_values_dict["RollType"])
         normal_rad.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
         adv_rad = ctk.CTkRadioButton(skill_rolltype_frame, text="Adv", fg_color=self._colors["button"], value=1, variable=self._skill_tab_values_dict["RollType"])
         adv_rad.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
@@ -231,7 +231,7 @@ class DiceSection(ctk.CTkFrame):
         result_label = ctk.CTkLabel(results_frame, text="Results: ")
         result_label.grid(row=0, column=0, columnspan=3, padx=6, pady=6, sticky="nws")
         #create dice roll button
-        skill_roll_button = ctk.CTkButton(results_frame, text="Roll", fg_color=self._colors["submit"], command=self._clear_skill_roll)
+        skill_roll_button = ctk.CTkButton(results_frame, text="Roll", fg_color=self._colors["submit"], command=lambda rl=result_label: self._skill_dice_roll_results(rl))
         skill_roll_button.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
         skill_roll_button.configure(command=lambda rl=result_label : self._skill_dice_roll_results(rl))
         #create section clear button
@@ -395,11 +395,11 @@ class DiceSection(ctk.CTkFrame):
         result_label = ctk.CTkLabel(action_result_frame, text="Results: ")
         result_label.grid(row=0, column=0, columnspan=3, sticky="w")
         #create buttons
-        roll_button = ctk.CTkButton(action_result_frame, text="Roll", fg_color=self._colors["submit"], command=self._action_dice_roll_results)
+        roll_button = ctk.CTkButton(action_result_frame, text="Roll", fg_color=self._colors["submit"], command=lambda rl=result_label: self._action_dice_roll_results(rl))
         roll_button.grid(row=1, column=0, padx=3, sticky="nsew")
-        clear_button = ctk.CTkButton(action_result_frame, text="Clear", fg_color=self._colors["submit"], command=self._clear_action_roll)
+        clear_button = ctk.CTkButton(action_result_frame, text="Clear", fg_color=self._colors["submit"], command=lambda rl=result_label: self._clear_action_roll(rl))
         clear_button.grid(row=1, column=1, padx=3, sticky="nsew")
-        detail_button = ctk.CTkButton(action_result_frame, text="Detail", fg_color=self._colors["submit"])
+        detail_button = ctk.CTkButton(action_result_frame, text="Details", fg_color=self._colors["submit"], command=self._get_action_roll_details)
         detail_button.grid(row=1, column=2, padx=3, sticky="nsew")
         #assign fonts to global dictionary
         self._fonts[result_label] = 40
@@ -445,7 +445,7 @@ class DiceSection(ctk.CTkFrame):
             lowest_roll = min(rolls)
             results_summary += f'{dice}: Highest Roll = {highest_roll}, Lowest Roll = {lowest_roll}, Total = {totals_by_dice[dice]}\n'
         results_frame.insert('1.0', f"Total sum of all dice = {total_sum}\n")
-        results_frame.insert('1.0', f"Roll Summary:\n{results_summary}\n{'-'*30}\n")
+        results_frame.insert('1.0', f"Roll Summary:\n{results_summary}\n{'-'*40}\n")
         results_frame.configure(state="disabled")
         return None
 #==============================================================================================================================================
@@ -471,15 +471,14 @@ class DiceSection(ctk.CTkFrame):
         Method to calculate the outcome of the skill roll given all values in the entered fields
     '''
     def _skill_dice_roll_results(self, result_label):
-        self._skill_dice_roll_details_text = (f"Roll Summary:\n")
+        self._skill_dice_roll_details_text = (f"Roll Summary:\n{'-'*40}\n")
         rolltype = self._skill_tab_values_dict["RollType"].get()
         dc = int(self._skill_tab_values_dict["DC"])
         bonus = int(self._skill_tab_values_dict["Bonus"].get())
         penalty = int(self._skill_tab_values_dict["Penalty"].get())
         roll_one, roll_two = random.randint(1, 20), random.randint(1, 20)
-        self._skill_dice_roll_details_text += (f"DC: {dc}\nPrimary d20: {roll_one} (normal roll)\nSecondary d20: {roll_two}\nBonus: +{bonus}\nPenalty: {penalty}\n{'-'*30}\nBonus Dice:\n\n")
+        self._skill_dice_roll_details_text += (f"DC: {dc}\nPrimary d20: {roll_one} (normal roll)\nSecondary d20: {roll_two} (adv/dis)\nBonus: +{bonus}\nPenalty: {penalty}\n{'-'*40}\nBonus Dice:\n\n")
         bonus_dice = self._skill_bonus_roll()
-        dice_roll = 0
         #check if roll is a normal roll
         if rolltype == 0:
             dice_roll = roll_one
@@ -494,6 +493,7 @@ class DiceSection(ctk.CTkFrame):
         if dice_roll == 1: 
             result_label.configure(text="Critial Failure!", text_color=self._colors["crit_fail"])
             return
+        #determine roll outcome
         dice_total = (dice_roll + bonus + bonus_dice + penalty)
         if dice_total >= dc:
             result_label.configure(text="Success!", text_color=self._colors["success"])
@@ -568,12 +568,55 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to calculate roll for action tab
     '''
-    def _action_dice_roll_results(self):
-        self._action_dice_roll_details_text = (f"Roll Summary:\n")
-        base_ac = self._action_tab_values_dict["AC"].get()
+    def _action_dice_roll_results(self, result_label):
+        self._action_dice_roll_details_text = (f"Roll Summary:\n{'-'*40}\n")
+        base_ac = int(self._action_tab_values_dict["AC"].get())
         rolltype = self._action_tab_values_dict["rolltype"].get()
         cover = self._action_tab_values_dict["cover"].get()
-        print(self._action_bonus_roll())
+        ability_score = int(self._action_tab_values_dict["Ability"].get())
+        proficiency = int(self._action_tab_values_dict["Prof"].get())
+        item_bonus = int(self._action_tab_values_dict["Item"].get())
+        class_feat = int(self._action_tab_values_dict["Class Ft"].get())
+        misc_bonus = int(self._action_tab_values_dict["Misc"].get())
+        roll_one, roll_two = random.randint(1, 20), random.randint(1, 20)
+        total_ac = 0
+        dice_roll = 0
+        dice_total = 0
+        cover_string = ""
+        #check for normal roll, adv, or disadv
+        if rolltype == 0:
+            dice_roll = roll_one
+        elif rolltype == 1:
+            dice_roll = max(roll_one, roll_two)
+        elif rolltype == 2:
+            dice_roll = min(roll_one, roll_two)
+        #calculate cover bonus for target
+        if cover == 0:
+            total_ac = base_ac
+            cover_string = "No Cover"
+        elif cover == 1:
+            total_ac = base_ac + 2
+            cover_string = "Half Cover"
+        elif cover == 2:
+            total_ac = base_ac + 5
+            cover_string = "3/4 Cover"
+        #insert roll details to text string
+        self._action_dice_roll_details_text += (f"Target AC: {base_ac}\nTarget Cover: {cover_string}\nPrimary d20: {roll_one} (normal roll)\nSecondary d20: {roll_two} (adv/dis)\nAbility Modifier: {ability_score}\nProficiency Modifier: {proficiency}\nItem Modifier: {item_bonus}\nClass Feat.: {class_feat}\nMisc Modifier(s): {misc_bonus}\n{'-'*40}\nBonus Dice:\n\n")
+        bonus_roll = self._action_bonus_roll()
+        #check for critial success or failure
+        if dice_roll == 20:
+            result_label.configure(text="Critical Success!", text_color=self._colors["crit_success"])
+            return
+        elif dice_roll == 1:
+            result_label.configure(text="Critical Failure!", text_color=self._colors["crit_fail"])
+            return
+        #check for regular success or fail
+        dice_total = (dice_roll + ability_score + proficiency + item_bonus + class_feat + misc_bonus + bonus_roll)
+        if dice_total >= total_ac:
+            result_label.configure(text="Success!", text_color=self._colors["success"])
+            return
+        elif dice_total < total_ac:
+            result_label.configure(text="Failure!", text_color=self._colors["fail"])
 #===============================================================================================================================
     '''
         Method to calcualte bonus action dice roll total
@@ -611,7 +654,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to clear/reset values for action tab
     '''
-    def _clear_action_roll(self):
+    def _clear_action_roll(self, result_label):
         for entry in self._action_dice_entries.values():
             entry.delete(0, ctk.END)
             entry.insert(0, "0")
@@ -628,11 +671,21 @@ class DiceSection(ctk.CTkFrame):
         self._action_tab_values_dict["Misc"].delete(0, ctk.END)
         self._action_tab_values_dict["Misc"].insert(0, "0")
         self._action_dice_roll_details_text = ""
+        result_label.configure(text="Results:", text_color=self._colors["text"])
 #===============================================================================================================================
     '''
         Method to display dice roll details for last calculated roll
     '''
-
+    def _get_action_roll_details(self):
+        if self._action_dice_roll_details_text == "": 
+            return
+        results_window = ctk.CTkToplevel(self)
+        results_window.title("Action Roll Details")
+        results_window.geometry("300x300")
+        results_frame = ctk.CTkTextbox(results_window, height=350, width=420)
+        results_frame.pack(pady=1)
+        results_frame.insert('1.0', f"{self._action_dice_roll_details_text}")
+        results_frame.configure(state="disabled")
 #===============================================================================================================================
     '''
         Method that prevents anything except for an integer to be entered into the entry boxes
