@@ -41,7 +41,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Setup the section to be a tabview containing as many tabs as there are names in the tab_names parameter in the class initialization
     '''
-    def _configure_tabview(self):
+    def _configure_tabview(self) -> None:
         #configure tab parameters
         self._section_tabs = ctk.CTkTabview(self, 
                             corner_radius=10, 
@@ -63,7 +63,7 @@ class DiceSection(ctk.CTkFrame):
         Method to configure the customdice tab (first tab in the tabview)
         method sets grid structure then loops through to create each dice frame
     '''
-    def _configure_customdice_tab(self):
+    def _configure_customdice_tab(self) -> ctk.CTkFrame:
         #set size of the content frame within the tab and set up grid structure for internal elements
         customdice_content = ctk.CTkFrame(self._section_tabs.tab(self._tab_names[0]), fg_color=self._colors["background"])
         customdice_content.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -90,7 +90,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to configure the tab for performing a skill checks
     '''
-    def _configure_skill_tab(self):
+    def _configure_skill_tab(self) -> None:
         #set size of the content frame within the tab and set up grid structure for internal elements
         self._skilltab_content = ctk.CTkFrame(self._section_tabs.tab(self._tab_names[1]), fg_color=self._colors["background"])
         self._skilltab_content.grid(row=0, column=0, sticky="nsew")
@@ -107,7 +107,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to create slider utility for adjusting the skill check difficulty
     '''
-    def _create_skill_dcslider(self):
+    def _create_skill_dcslider(self) -> ctk.CTkFrame:
         #create frame
         dc_slider_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         dc_slider_frame.grid(row=0, column=0, pady=10, sticky="nsew")
@@ -133,7 +133,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to create a radio button for selecting the roll type (normal, advantage, disadvantage)
     '''
-    def _create_skill_rolltype_frame(self):
+    def _create_skill_rolltype_frame(self) -> ctk.CTkFrame:
         #create frame
         skill_rolltype_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         skill_rolltype_frame.grid(row=1, column=0, sticky="nsew")
@@ -160,7 +160,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method for creating the bonus and penalty trackers
     '''
-    def _create_skill_modifier_frame(self):
+    def _create_skill_modifier_frame(self) -> ctk.CTkFrame:
         #create frame
         modifier_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         modifier_frame.grid(row=2, column=0, pady=10, sticky="nsew")
@@ -202,7 +202,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method for created dice frames to additional skill roll die
     '''
-    def _create_skill_bonusdice_frame(self):
+    def _create_skill_bonusdice_frame(self) -> ctk.CTkFrame:
         #create dice frame to house all 6 die types
         bonus_die_frame = ctk.CTkFrame(self._skilltab_content, fg_color=self._colors["foreground"], border_width=2, border_color=self._colors["border"])
         bonus_die_frame.grid(row=3, rowspan=2, column=0, pady=10, sticky="nsew")
@@ -221,7 +221,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to create result frame that houses buttons and result status message of the skill roll
     '''
-    def _create_skill_results_frame(self):
+    def _create_skill_results_frame(self) -> ctk.CTkFrame:
         #create result frame to house subsequent frames and define grid structure
         results_frame = ctk.CTkFrame(self._skilltab_content, corner_radius=20, fg_color=self._colors["background"])
         results_frame.grid(row=5, rowspan=2, column=0, pady=10, sticky="nsew")
@@ -250,7 +250,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to configure the action roll tab
     '''
-    def _configure_action_tab(self):
+    def _configure_action_tab(self) -> None:
         #create initial frame to house all other sections 
         self._action_tab_content = ctk.CTkFrame(self._section_tabs.tab(self._tab_names[2]), fg_color=self._colors["background"])
         self._action_tab_content.grid(row=0, column=0, sticky="nsew")
@@ -268,7 +268,7 @@ class DiceSection(ctk.CTkFrame):
         Method to setup the frame for setting the target's AC
     '''
     # separate this into two methods that are called from the one below to have two frames, ac and cover
-    def _create_targetac_frame(self):
+    def _create_targetac_frame(self) -> ctk.CTkFrame:
         #configure frame grid
         root_ac_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         root_ac_frame.grid(row=0, column=0, sticky="nsew")
@@ -296,7 +296,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to setup the frame for setting the rolltype and cover status
     '''
-    def _create_action_rolltype_frame(self):
+    def _create_action_rolltype_frame(self) -> ctk.CTkFrame:
         #configure rolltype frame grid structure
         rolltype_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["text"])
         rolltype_frame.grid(row=1, column=0, sticky="nsew")
@@ -330,19 +330,22 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to setup the frame for setting the modifiers for the action roll
     '''
-    def _create_action_modifiers_frame(self):
+    def _create_action_modifiers_frame(self) -> ctk.CTkFrame:
+        #configure grid layout for frame
         modifier_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["border"])
         modifier_frame.grid(row=2, rowspan=2, column=0, pady=5, sticky="nsew")
         modifier_frame.grid_rowconfigure((0, 1), weight=1)
         modifier_frame.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
+        #create list of modifier names and another list of their positions (row, column)
         modifier_types = ["Ability", "Prof", "Item", "Class Ft", "Misc"]
         frame_pos = [(0, 0), (0, 2), (0, 4), (1, 1), (1, 3)]
+        #loop through and create mod frame
         for index, mod in enumerate(modifier_types):
-            mod_frame = self._create_mod_frame(modifier_frame, frame_pos[index], mod)
+            mod_frame = self._create_mod_frame(modifier_frame, mod)
             mod_frame.grid(row=frame_pos[index][0], column=frame_pos[index][1], columnspan=2, padx=5, pady=3, sticky="nsew")
         return modifier_frame
 #==================================================================================================================================================================================
-    def _create_mod_frame(self, root_frame, position, mod):
+    def _create_mod_frame(self, root_frame, mod) -> ctk.CTkFrame:
         #configure frame
         frame=ctk.CTkFrame(root_frame, fg_color=self._colors["background"])
         frame.grid_rowconfigure((0, 1, 2), weight=1)
@@ -369,12 +372,15 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to setup the frame for setting the rolltype and cover status
     '''
-    def _create_action_bonus_dice_frame(self):
+    def _create_action_bonus_dice_frame(self) -> ctk.CTkFrame:
+        #configure frame grid structure
         action_dice_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["background"], border_width=2, border_color=self._colors["text"])
         action_dice_frame.grid(row=4, rowspan=2, column=0, sticky="nsew")
         action_dice_frame.grid_rowconfigure((0, 1), weight=1)
         action_dice_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        #create list of dice types
         dice_types=["d4", "d6", "d8", "d10", "d12", "d20"]
+        #looop through list of dice types and create frame of dice
         for index, dice in enumerate(dice_types):
             column = index // 2
             row = index % 2
@@ -385,7 +391,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to setup the frame for setting the rolltype and cover status
     '''
-    def _create_action_result_frame(self):
+    def _create_action_result_frame(self) -> ctk.CTkFrame:
         #configure frame and grid structure
         action_result_frame = ctk.CTkFrame(self._action_tab_content, fg_color=self._colors["foreground"])
         action_result_frame.grid(row=6, rowspan=2, column=0, sticky="nsew")
@@ -411,7 +417,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to roll the custom dice and display pop up window with dice result details
     '''
-    def _custom_dice_roll_results(self):
+    def _custom_dice_roll_results(self) -> None:
         dice_types = {'d4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12, 'd20': 20}
         # Create a pop-up window for results
         results_window = ctk.CTkToplevel(self)
@@ -452,7 +458,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to clear custom roll fields
     '''
-    def _clear_custom_roll(self):
+    def _clear_custom_roll(self) -> None:
         for entry in self._custom_dice_entries.values():
             entry.delete(0, ctk.END)
             entry.insert(0, "0")
@@ -470,7 +476,8 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to calculate the outcome of the skill roll given all values in the entered fields
     '''
-    def _skill_dice_roll_results(self, result_label):
+    def _skill_dice_roll_results(self, result_label) -> None:
+        #Get local instances of entries for calculating roll results
         self._skill_dice_roll_details_text = (f"Roll Summary:\n{'-'*40}\n")
         rolltype = self._skill_tab_values_dict["RollType"].get()
         dc = int(self._skill_tab_values_dict["DC"])
@@ -505,13 +512,16 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to get the results of the bonus dice rolled for a skill check
     '''
-    def _skill_bonus_roll(self):
+    def _skill_bonus_roll(self) -> int:
+        #create dictionary of dice types by name with value of how many sides the die has
+        #also create local initialization of variables 
         dice_types = {'d4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12, 'd20': 20}
         total_sum = 0
         all_rolls = {}
         totals_by_dice = {}
         roll_details_text = ""
         roll_summary_text = ""
+        #loop through dice entries within dice frame and calcuate dice rolls, sums, and min/max values
         for dice, entry in self._skill_dice_entries.items():
             try:
                 count = int(entry.get())
@@ -538,7 +548,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to clear fields for the skill check section
     '''
-    def _clear_skill_roll(self, result_label):
+    def _clear_skill_roll(self, result_label) -> None:
         for entry in self._skill_dice_entries.values():
             entry.delete(0, ctk.END)
             entry.insert(0, "0")
@@ -553,7 +563,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to get details of the skill check roll in a pop out window
     '''
-    def _get_skill_roll_details(self):
+    def _get_skill_roll_details(self) -> None:
         if self._skill_dice_roll_details_text == "":
             return
         results_window = ctk.CTkToplevel(self)
@@ -568,7 +578,9 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to calculate roll for action tab
     '''
-    def _action_dice_roll_results(self, result_label):
+    def _action_dice_roll_results(self, result_label) -> None:
+        #create dictionary of dice types by name with value of how many sides the die has
+        #also create local initialization of variables 
         self._action_dice_roll_details_text = (f"Roll Summary:\n{'-'*40}\n")
         base_ac = int(self._action_tab_values_dict["AC"].get())
         rolltype = self._action_tab_values_dict["rolltype"].get()
@@ -617,17 +629,20 @@ class DiceSection(ctk.CTkFrame):
             return
         elif dice_total < total_ac:
             result_label.configure(text="Failure!", text_color=self._colors["fail"])
+        return None
 #===============================================================================================================================
     '''
         Method to calcualte bonus action dice roll total
     '''
-    def _action_bonus_roll(self):
+    def _action_bonus_roll(self) -> int:
+            #initialize dictionary of dice types as well as other local variables to be used
             dice_types = {'d4': 4, 'd6': 6, 'd8': 8, 'd10': 10, 'd12': 12, 'd20': 20}
             total_sum = 0
             all_rolls = {}
             totals_by_dice = {}
             roll_details_text = ""
             roll_summary_text = ""
+            #iterate thorugh dice entries and calculate dice sums, min, and max values
             for dice, entry in self._action_dice_entries.items():
                 try:
                     count = int(entry.get())
@@ -654,7 +669,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method to clear/reset values for action tab
     '''
-    def _clear_action_roll(self, result_label):
+    def _clear_action_roll(self, result_label) -> None:
         for entry in self._action_dice_entries.values():
             entry.delete(0, ctk.END)
             entry.insert(0, "0")
@@ -672,11 +687,12 @@ class DiceSection(ctk.CTkFrame):
         self._action_tab_values_dict["Misc"].insert(0, "0")
         self._action_dice_roll_details_text = ""
         result_label.configure(text="Results:", text_color=self._colors["text"])
+        return None
 #===============================================================================================================================
     '''
         Method to display dice roll details for last calculated roll
     '''
-    def _get_action_roll_details(self):
+    def _get_action_roll_details(self) -> None:
         if self._action_dice_roll_details_text == "": 
             return
         results_window = ctk.CTkToplevel(self)
@@ -686,11 +702,12 @@ class DiceSection(ctk.CTkFrame):
         results_frame.pack(pady=1)
         results_frame.insert('1.0', f"{self._action_dice_roll_details_text}")
         results_frame.configure(state="disabled")
+        return None
 #===============================================================================================================================
     '''
         Method that prevents anything except for an integer to be entered into the entry boxes
     '''
-    def _entry_input_validation(self, value):
+    def _entry_input_validation(self, value) -> bool:
         if value == "" or value == "0":
             return True
         if value.lstrip("-").isdigit():
@@ -700,7 +717,7 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method that handles increasing and decreasing entry values that use a segmented button
     '''
-    def _adjust_modifier_entry_values(self, selected, entry, value_button):
+    def _adjust_modifier_entry_values(self, selected, entry, value_button) -> None:
         current_val = int(entry.get())
         if selected == "+":
             current_val += 1
@@ -709,11 +726,12 @@ class DiceSection(ctk.CTkFrame):
         entry.delete(0, ctk.END)
         entry.insert(0, str(current_val))
         value_button.set("")
+        return None
 #======================================================================================================================================
     '''
         Method that handles increasing and decreasing entry values that use a segmented button
     '''
-    def _adjust_dice_entry_values(self, selected, entry, value_button):
+    def _adjust_dice_entry_values(self, selected, entry, value_button) -> None:
         current_val = int(entry.get())
         if selected == "+":
             current_val += 1
@@ -722,11 +740,12 @@ class DiceSection(ctk.CTkFrame):
         entry.delete(0, ctk.END)
         entry.insert(0, str(current_val))
         value_button.set("")
+        return None
 #=====================================================================================================================================
     '''
         method to use for all dice frame creations within the tabs instead of needing multiple
     '''
-    def _create_general_dice_frame(self, root_frame, dice, tab_name):
+    def _create_general_dice_frame(self, root_frame, dice, tab_name) -> ctk.CTkFrame:
         #Create dice frame with grid structure
         dice_frame = ctk.CTkFrame(root_frame, fg_color=self._colors["foreground"])
         dice_frame.grid_rowconfigure((0, 1), weight=1)
@@ -761,7 +780,8 @@ class DiceSection(ctk.CTkFrame):
     '''
         Method that dynamically resizes the font of any font assigned in the global dictionary according to the window size
     '''
-    def _resize_font(self, event):
+    def _resize_font(self, event) -> None:
         for label, base_size in self._fonts.items():
             new_font_size = max(10, int(base_size * (self.winfo_width() / 600)))
             label.configure(font=("Arial", new_font_size))
+        return None
